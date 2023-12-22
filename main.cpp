@@ -112,8 +112,8 @@ class Gens {
 private:
     vector<string> Gen;
 public:
-    bool YesNumSeedling, ExitGenCalc, Exit = false;
-    int menu, Seedling;
+    bool YesNumSeedling, ExitGenCalc;
+    int Seedling;
     char ex;
     Gencrossing Result;
 
@@ -144,7 +144,6 @@ public:
         cout << endl;
     }
 
-
     void InputNumSeedling() {
         string input;
         cout << "Введите количество Саженцев: ";
@@ -174,31 +173,6 @@ public:
         else YesNumSeedling = false;
     }
 
-    void InfoGenCrossing() {
-    string Text_info =
-            "Информация о скрещивании генов...\n"
-            "В игре есть 5 генов.\n"
-            "Из них 3 положительных (G, Y, H) и 2 отрицательных (W, X).\n\n"
-            "G – ускоренный рост;\n"
-            "Y – дополнительный урожай;\n"
-            "H – устойчивость к условиям окружающей среды;\n"
-            "W – увеличенное потребление воды;\n"
-            "X – пустой ген.\n\n"
-            "У генов условно есть колличество силы!\n"
-            "У положительных генов (G, Y, H) - 60 силы.\n"
-            "У отрицательных генов (W, X) - 100 силы.\n"
-            "При скрещивании силы у одинаковых генов складываються, а ген у которого больше силы выживает.\n"
-            "Если у генов одинаковое колличество силы то при срещивании может выжить один из них с вероятностью 50/50\n"
-            "К примеру если у нас два гена G, и один ген X.\n"
-            "В таком случае у гена G будет 120 силы так как их два, а у гена X будет 100 силы.\n"
-            "Таким образом G > X по этому выживет ген G\n"
-            "В ответе калькулятора в случае одинаковых генов, выведеться несколько вариантов генов в нужном месте это будет означать, "
-            "что тут может быть этот ген с вероятностью 50/50\n ";
-        PrintColoredGenes(Text_info);
-        cout << endl;
-        Options();
-    }
-
     void Mistake(int i) {
         while (Gen[i].length() != 6) {
             cout << "!ОШИБКА!\nВы ввели " << Gen[i].length() << " ген\nПожалуйста, введите ровно 6 генов!\n";
@@ -207,6 +181,56 @@ public:
         }
     }
 
+    void CalcGens()
+    {
+        ExitGenCalc = false;
+        YesNumSeedling = false;
+        while (!ExitGenCalc)
+        {
+            while (!YesNumSeedling)
+            {
+                InputNumSeedling();
+            }
+            for (int i = 0; i < Seedling; i++)
+            {
+                SendGenesForSeedling(i);
+                Mistake(i);
+            }
+            EndGens();
+        }
+    }
+};
+
+class Menu {
+private:
+    int menu;
+    bool Exit;
+public:
+    Gens Calcgenes;
+
+    void InfoGenCrossing() {
+        string Text_info =
+                "Информация о скрещивании генов...\n"
+                "В игре есть 5 генов.\n"
+                "Из них 3 положительных (G, Y, H) и 2 отрицательных (W, X).\n\n"
+                "G – ускоренный рост;\n"
+                "Y – дополнительный урожай;\n"
+                "H – устойчивость к условиям окружающей среды;\n"
+                "W – увеличенное потребление воды;\n"
+                "X – пустой ген.\n\n"
+                "У генов условно есть колличество силы!\n"
+                "У положительных генов (G, Y, H) - 60 силы.\n"
+                "У отрицательных генов (W, X) - 100 силы.\n"
+                "При скрещивании силы у одинаковых генов складываються, а ген у которого больше силы выживает.\n"
+                "Если у генов одинаковое колличество силы то при срещивании может выжить один из них с вероятностью 50/50\n"
+                "К примеру если у нас два гена G, и один ген X.\n"
+                "В таком случае у гена G будет 120 силы так как их два, а у гена X будет 100 силы.\n"
+                "Таким образом G > X по этому выживет ген G\n"
+                "В ответе калькулятора в случае одинаковых генов, выведеться несколько вариантов генов в нужном месте это будет означать, "
+                "что тут может быть этот ген с вероятностью 50/50\n ";
+        PrintColoredGenes(Text_info);
+        cout << endl;
+    }
 
     void Options() {
         while (!Exit) {
@@ -230,9 +254,7 @@ public:
                         break;
                     case 3:
                         ClearInputStream();
-                        ExitGenCalc = false;
-                        YesNumSeedling = false;
-                        CalcGens();
+                        Calcgenes.CalcGens();
                         break;
                     default:
                         cout << "Ошибка: введите число из списка опций!" << endl;
@@ -241,27 +263,7 @@ public:
             }
         }
     }
-
-
-    void CalcGens()
-    {
-        while (!ExitGenCalc)
-        {
-            while (!YesNumSeedling)
-            {
-                InputNumSeedling();
-            }
-            for (int i = 0; i < Seedling; i++)
-            {
-                SendGenesForSeedling(i);
-                Mistake(i);
-            }
-            EndGens();
-        }
-        Options();
-    }
 };
-
 
 int main() {
     SetConsoleCodePage(CP_UTF8);
@@ -269,8 +271,8 @@ int main() {
 
     SetConsoleTitle(TEXT("Gen Calculator"));
 
-    Gens Genes;
-    Genes.Options();
+    Menu menu;
+    menu.Options();
 
     return 0;
 }
