@@ -3,7 +3,7 @@
 ## Описание
 Gen Calculator - это инструмент для игроков "Раст", позволяющий оптимизировать скрещивание растений. Он предоставляет предсказания генетических комбинаций, упрощая выбор стратегий возделывания.
 
-![GenCalculatorScreenshot]([https://github.com/FADE365/Gen-Calculator/blob/main/icon.rc](https://w7.pngwing.com/pngs/166/864/png-transparent-rust-hemp-minecraft-fiber-crop-plant-others-game-leaf-video-game.png))
+![GenCalculatorScreenshot](https://w7.pngwing.com/pngs/166/864/png-transparent-rust-hemp-minecraft-fiber-crop-plant-others-game-leaf-video-game.png)
 
 ## Функции
 - Ввод саженцев и их генетических кодов.
