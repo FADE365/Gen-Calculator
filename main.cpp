@@ -151,7 +151,6 @@ protected:
             stringstream stream(input);
             if (stream >> Seedling) { // Пытаемся прочитать число
                 if (Seedling > 0 && Seedling < 10) {
-                    YesNumSeedling = true;
                     Gen.resize(Seedling);
                     break; // Выход из цикла, если число корректное
                 }
@@ -187,10 +186,7 @@ public:
         YesNumSeedling = false;
         while (!ExitGenCalc)
         {
-            while (!YesNumSeedling)
-            {
-                InputNumSeedling();
-            }
+            InputNumSeedling();
             for (int i = 0; i < Seedling; i++)
             {
                 SendGenesForSeedling(i);
@@ -203,7 +199,6 @@ public:
 
 class Menu {
 private:
-    Gens Calcgenes;
 protected:
     int menu;
     bool Exit;
@@ -231,6 +226,7 @@ protected:
         cout << endl;
     }
 public:
+    Gens Calcgenes;
     void Options() {
         while (!Exit) {
             cout << "Выберите опцию =>\n"
