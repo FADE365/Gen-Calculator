@@ -111,12 +111,11 @@ public:
 class Gens {
 private:
     vector<string> Gen;
-public:
+    Gencrossing Result;
+protected:
     bool YesNumSeedling, ExitGenCalc;
     int Seedling;
     char ex;
-    Gencrossing Result;
-
     string ReadGen() {
         string input;
         char ch;
@@ -181,6 +180,7 @@ public:
         }
     }
 
+public:
     void CalcGens()
     {
         ExitGenCalc = false;
@@ -203,11 +203,10 @@ public:
 
 class Menu {
 private:
+    Gens Calcgenes;
+protected:
     int menu;
     bool Exit;
-public:
-    Gens Calcgenes;
-
     void InfoGenCrossing() {
         string Text_info =
                 "Информация о скрещивании генов...\n"
@@ -231,7 +230,7 @@ public:
         PrintColoredGenes(Text_info);
         cout << endl;
     }
-
+public:
     void Options() {
         while (!Exit) {
             cout << "Выберите опцию =>\n"
