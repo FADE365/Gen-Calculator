@@ -5,67 +5,124 @@
 #include <sstream>
 #include <limits>
 #include <conio.h>
+#include <array>
+#include <memory>
+#include <stdexcept>
 
 
 using namespace std;
 
-void SetConsoleTextColor(WORD color) {
-    setlocale(LC_ALL, "ru");
-    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(hStdOut, color);
-}
 
-void SetConsoleCodePage(unsigned int codepage)
-{
-    SetConsoleOutputCP(codepage);
-    SetConsoleCP(codepage);
-}
+class InputOutput {
+protected:
+    int red = 4;
+    int green = 2;
+    int white = 7;
 
-void ClearInputStream() {
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очищаем поток ввода
-    cin.clear(); // Сбрасываем любые ошибки ввода/вывода
-}
+    string exec(const char* cmd) {
+        array<char, 128> buffer;
+        string result;
+        unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+        if (!pipe) {
+            throw runtime_error("popen() failed!");
+        }
+        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+            result += buffer.data();
+        }
+        return result;
+    }
 
-
-vector<int> find_max_indices(const int arr[], int size) {
-    vector<int> max_indices;
-    int max_value = numeric_limits<int>::min();
-
-    // Находим максимальное значение
-    for (int i = 0; i < size; ++i) {
-        if (arr[i] > max_value) {
-            max_value = arr[i];
+    void SetConsoleTextColor(WORD color) {
+        setlocale(LC_ALL, "ru");
+        HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hStdOut, color);
+    }
+public:
+    void SendCodePage() {
+        try {
+            string chcpResult = exec("chcp");
+            SetConsoleTextColor(4);
+            cout << "Current Code Page: " << chcpResult;
+            SetConsoleTextColor(7);
+        } catch (const exception& e) {
+            cerr << "Error: " << e.what() << endl;
         }
     }
 
-    // Находим индексы всех элементов, равных максимальному значению
-    for (int i = 0; i < size; ++i) {
-        if (arr[i] == max_value) {
-            max_indices.push_back(i);
-        }
+    void SetConsoleCodePage(unsigned int codepage)
+    {
+        SetConsoleOutputCP(codepage);
+        SetConsoleCP(codepage);
     }
 
-    return max_indices;
-}
-
-void PrintColoredGenes(const string& genes) {
-    for (char ch : genes) {
-        if (ch == 'G' || ch == 'Y' || ch == 'H' || ch == 'g' || ch == 'y' || ch == 'h') {
-            SetConsoleTextColor(2); // Зелёный цвет для G, Y, H
-            cout << ch;
-        } else if (ch == 'W' || ch == 'X' || ch == 'w' || ch == 'x') {
-            SetConsoleTextColor(4); // Красный цвет для W, X
-            cout << ch;
-        } else {
-            SetConsoleTextColor(7); // Обычный цвет для остальных символов
-            cout << ch;
-        }
+    void ClearInputStream() {
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очищаем поток ввода
+        cin.clear(); // Сбрасываем любые ошибки ввода/вывода
     }
-    SetConsoleTextColor(7); // Сброс цвета после вывода всех символов
-    cout << endl; // Переход на новую строку после вывода строки
-}
+
+    void PrintColoredGenes(const string& genes) {
+        for (char ch : genes) {
+            if (ch == 'G' || ch == 'Y' || ch == 'H' || ch == 'g' || ch == 'y' || ch == 'h') {
+                SetConsoleTextColor(green); // Зелёный цвет для G, Y, H
+                cout << ch;
+            } else if (ch == 'W' || ch == 'X' || ch == 'w' || ch == 'x') {
+                SetConsoleTextColor(red); // Красный цвет для W, X
+                cout << ch;
+            } else {
+                SetConsoleTextColor(white); // Обычный цвет для остальных символов
+                cout << ch;
+            }
+        }
+        SetConsoleTextColor(7); // Сброс цвета после вывода всех символов
+        cout << endl; // Переход на новую строку после вывода строки
+    }
+
+    string ReadGen() {
+        string input;
+        char ch;
+        while ((ch = _getch()) != '\r') { // Читаем символы до нажатия Enter
+            if (ch == '\b' && !input.empty()) { // Обработка нажатия Backspace
+                cout << "\b \b";
+                input.pop_back();
+            } else if (input.length() < 6 &&
+                       (ch == 'G' || ch == 'Y' || ch == 'H' || ch == 'g' || ch == 'y' || ch == 'h' ||
+                        ch == 'W' || ch == 'X' || ch == 'w' || ch == 'x')) {
+                // Установка соответствующего цвета в зависимости от символа
+                SetConsoleTextColor(ch == 'G' || ch == 'Y' || ch == 'H' || ch == 'g' || ch == 'y' || ch == 'h' ? 2 : 4);
+                cout << ch;
+                SetConsoleTextColor(7); // Сброс на обычный цвет
+                input.push_back(ch);
+            }
+        }
+        cout << endl; // Переход на новую строку после завершения ввода
+        return input;
+    }
+
+};
 
 class Gencrossing {
+
+protected:
+    vector<int> find_max_indices(const int arr[], int size) {
+        vector<int> max_indices;
+        int max_value = numeric_limits<int>::min();
+
+        // Находим максимальное значение
+        for (int i = 0; i < size; ++i) {
+            if (arr[i] > max_value) {
+                max_value = arr[i];
+            }
+        }
+
+        // Находим индексы всех элементов, равных максимальному значению
+        for (int i = 0; i < size; ++i) {
+            if (arr[i] == max_value) {
+                max_indices.push_back(i);
+            }
+        }
+
+        return max_indices;
+    }
 public:
     string GCrossing(int Seedling, vector<string> Gen) {
         char charArray[5] = {'G', 'Y', 'H', 'W', 'X'};
@@ -113,33 +170,13 @@ private:
     vector<string> Gen;
     Gencrossing Result;
 protected:
-    bool YesNumSeedling, ExitGenCalc;
+    bool ExitGenCalc;
     int Seedling;
     char ex;
-    string ReadGen() {
-        string input;
-        char ch;
-        while ((ch = _getch()) != '\r') { // Читаем символы до нажатия Enter
-            if (ch == '\b' && !input.empty()) { // Обработка нажатия Backspace
-                cout << "\b \b";
-                input.pop_back();
-            } else if (input.length() < 6 &&
-                       (ch == 'G' || ch == 'Y' || ch == 'H' || ch == 'g' || ch == 'y' || ch == 'h' ||
-                        ch == 'W' || ch == 'X' || ch == 'w' || ch == 'x')) {
-                // Установка соответствующего цвета в зависимости от символа
-                SetConsoleTextColor(ch == 'G' || ch == 'Y' || ch == 'H' || ch == 'g' || ch == 'y' || ch == 'h' ? 2 : 4);
-                cout << ch;
-                SetConsoleTextColor(7); // Сброс на обычный цвет
-                input.push_back(ch);
-            }
-        }
-        cout << endl; // Переход на новую строку после завершения ввода
-        return input;
-    }
 
     void SendGenesForSeedling(int i) {
         cout << "Введите гены для саженца " << (i + 1) << ": ";
-        Gen[i] = ReadGen(); // Сохраняем считанный ген в вектор
+        Gen[i] = InOut.ReadGen(); // Сохраняем считанный ген в вектор
         cout << endl;
     }
 
@@ -162,28 +199,27 @@ protected:
 
     void EndGens() {
         cout << "Результат Генов:\n";
-        PrintColoredGenes(Result.GCrossing(Seedling, Gen));
+        InOut.PrintColoredGenes(Result.GCrossing(Seedling, Gen));
         cout << "\nВыйти в меню? Y/N :";
         cin >> ex;
-        ClearInputStream();
+        InOut.ClearInputStream();
 
         if (ex == 'Y' || ex == 'y') ExitGenCalc = true;
-        else YesNumSeedling = false;
     }
 
     void Mistake(int i) {
         while (Gen[i].length() != 6) {
             cout << "!ОШИБКА!\nВы ввели " << Gen[i].length() << " ген\nПожалуйста, введите ровно 6 генов!\n";
             cout << "Введите гены для саженца " << (i + 1) << ": ";
-            Gen[i] = ReadGen();
+            Gen[i] = InOut.ReadGen();
         }
     }
 
 public:
+    InputOutput InOut;
     void CalcGens()
     {
         ExitGenCalc = false;
-        YesNumSeedling = false;
         while (!ExitGenCalc)
         {
             InputNumSeedling();
@@ -198,7 +234,6 @@ public:
 };
 
 class Menu {
-private:
 protected:
     int menu;
     bool Exit;
@@ -222,7 +257,7 @@ protected:
                 "Таким образом G > X по этому выживет ген G\n"
                 "В ответе калькулятора в случае одинаковых генов, выведеться несколько вариантов генов в нужном месте это будет означать, "
                 "что тут может быть этот ген с вероятностью 50/50\n ";
-        PrintColoredGenes(Text_info);
+        Calcgenes.InOut.PrintColoredGenes(Text_info);
         cout << endl;
     }
 public:
@@ -233,12 +268,13 @@ public:
                  << "1. Выйти!\n"
                  << "2. Информация (Как скрещивать гены?)\n"
                  << "3. Калькулятор генов\n"
+                 << "4. Display the code page of the console\n"
                  << "Введите номер опции : ";
             cin >> menu;
             cout << endl;
             // Проверяем, удалось ли считать целое число
             if (cin.fail()) {
-                ClearInputStream();
+                Calcgenes.InOut.ClearInputStream();
                 cout << "Ошибка: введите числовое значение." << endl;
             } else {
                 switch (menu) {
@@ -248,8 +284,11 @@ public:
                         InfoGenCrossing();
                         break;
                     case 3:
-                        ClearInputStream();
+                        Calcgenes.InOut.ClearInputStream();
                         Calcgenes.CalcGens();
+                        break;
+                    case 4:
+                        Calcgenes.InOut.SendCodePage();
                         break;
                     default:
                         cout << "Ошибка: введите число из списка опций!" << endl;
@@ -261,12 +300,12 @@ public:
 };
 
 int main() {
-    SetConsoleCodePage(CP_UTF8);
-    setlocale(LC_ALL, "ru");
+    Menu menu;
 
+    menu.Calcgenes.InOut.SetConsoleCodePage(CP_UTF8);
+    setlocale(LC_ALL, "ru");
     SetConsoleTitle(TEXT("Gen Calculator"));
 
-    Menu menu;
     menu.Options();
 
     return 0;
